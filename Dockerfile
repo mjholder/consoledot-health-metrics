@@ -8,3 +8,6 @@ RUN pip install pipenv-to-requirements
 RUN pipenv run pipenv_to_requirements -f
 RUN pip install -r requirements.txt
 USER root
+WORKDIR /usr/app/src
+COPY metric_collector.py ./
+CMD ["python", "./metric_collector.py"]
