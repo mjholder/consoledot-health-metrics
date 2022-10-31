@@ -48,7 +48,6 @@ def main():
 
 def create_tables(connection):
     cursor = connection.cursor()
-    cursor.execute("DROP TABLE IF EXISTS SLO")
     create_table_query = '''CREATE TABLE SLO
           (
           SERVICE           TEXT    NOT NULL,
