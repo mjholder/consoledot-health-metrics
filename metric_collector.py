@@ -34,16 +34,17 @@ def main():
         print("You are connected to - ", record, "\n")
 
         create_tables(connection)
+
+        while(True):
+            SLO_dict = collect_SLO(auth_token)
+            process_SLO(SLO_dict, connection)
+
+            # run every 10 min
+            time.sleep(600)
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
     
 
-    while(True):
-        SLO_dict = collect_SLO(auth_token)
-        process_SLO(SLO_dict, connection)
-
-        # run every 10 min
-        time.sleep(60)
 
 
 def create_tables(connection):
@@ -88,14 +89,17 @@ def collect_SLO(auth_token):
     # response = requests.get(url=url, params=query, headers=headers)
     
     response = requests.get(url=url, headers=headers)
-    response_json = response.json()
-    print(f"url = {response.url}\nresponse = {response_json}")
+    try:
+        response_json = response.json()
+        print(f"url = {response.url}\nresponse = {response_json}")
+        return {
+            'service': '3scale',
+            'datetime': datetime.datetime.now(),
+            'SLO': response_json['data']['result'][0]['value'][1]
+        }
+    except:
+        print("Bad response from prometheus")
 
-    return {
-        'service': '3scale',
-        'datetime': datetime.datetime.now(),
-        'SLO': response_json['data']['result'][0]['value'][1]
-    }
 
 
 def process_SLO(SLO_dict, connection):
