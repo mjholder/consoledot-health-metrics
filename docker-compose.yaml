@@ -1,13 +1,11 @@
 version: '3'
 
 services:
-  health-monitor:
+  metric-scraper:
       build:
           context: .
           dockerfile: Dockerfile
-      working_dir: /health-monitor
-      entrypoint:
-        - /health-monitor/run_server.sh
+      working_dir: /metric-scraper
       environment:
         - DATABASE_SERVICE_NAME=POSTGRES_SQL
         - DATABASE_ENGINE=postgresql
@@ -16,12 +14,12 @@ services:
         - POSTGRES_SQL_SERVICE_PORT=5432
         - DATABASE_USER=postgres
         - DATABASE_PASSWORD=postgres
-        - AUTH_TOKEN=
+        - AUTH_TOKEN=_oauth_proxy=bWpob2xkZXJAY2x1c3Rlci5sb2NhbA==|1666869415|8t-XCsAdxxNDK9Z2Mm82hfupcII=; 01412cd97ff4944ee6e5a5210393d5a6=dd8a76dbd2a9bff22d181a22e9a79e7f
       privileged: true
       ports:
           - 9080:8000
       volumes:
-        - '.:/health-monitor/'
+        - '.:/metric-scraper/'
       links:
         - db
       depends_on:
@@ -40,4 +38,4 @@ services:
 networks:
   default:
     external:
-      name: health-monitor
+      name: health-metrics
