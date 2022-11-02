@@ -11,7 +11,8 @@ import psycopg2
 
 # dictionary of service, SLO query pairs
 SLO_querys = {
-    '3scale': 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))'
+    '3scale': 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))',
+
 }
 
 
@@ -93,7 +94,7 @@ def process_SLO(service, connection, auth_token):
 
     service_name = SLO_dict['service']
     slo_datetime = SLO_dict['datetime']
-    slo_value = 1 - (float)(SLO_dict['SLO'])
+    slo_value = SLO_dict['SLO']
 
     print(service_name)
     print(slo_datetime)
