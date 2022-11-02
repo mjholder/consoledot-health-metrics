@@ -14,7 +14,7 @@ services:
         - POSTGRES_SQL_SERVICE_PORT=5432
         - DATABASE_USER=postgres
         - DATABASE_PASSWORD=postgres
-        - AUTH_TOKEN=_oauth_proxy=bWpob2xkZXJAY2x1c3Rlci5sb2NhbA==|1666869415|8t-XCsAdxxNDK9Z2Mm82hfupcII=; 01412cd97ff4944ee6e5a5210393d5a6=dd8a76dbd2a9bff22d181a22e9a79e7f
+        - AUTH_TOKEN=
       privileged: true
       ports:
           - 9080:8000
