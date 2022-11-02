@@ -9,6 +9,10 @@ import time
 import psycopg2
 
 
+# dictionary of service, SLO query pairs
+SLO_querys = {
+    '3scale': 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))'
+}
 
 
 def main():
@@ -36,27 +40,29 @@ def main():
         create_tables(connection)
 
         while(True):
-            SLO_dict = collect_SLO(auth_token)
-            process_SLO(SLO_dict, connection)
+            for service in SLO_querys.keys():
+                process_SLO(service, connection, auth_token)
 
             # run every 10 min
             time.sleep(600)
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
-    
-
+        print(type(error))
 
 
 def create_tables(connection):
-    cursor = connection.cursor()
-    create_table_query = '''CREATE TABLE SLO
-          (
-          SERVICE           TEXT    NOT NULL,
-          datetime          TIMESTAMP,
-          SLO_value         DOUBLE PRECISION); '''
+    try:
+        cursor = connection.cursor()
+        create_table_query = '''CREATE TABLE SLO
+            (
+            SERVICE           TEXT    NOT NULL,
+            datetime          TIMESTAMP,
+            SLO_value         DOUBLE PRECISION); '''
 
-    cursor.execute(create_table_query)
-    connection.commit()
+        cursor.execute(create_table_query)
+        connection.commit()
+    except psycopg2.errors.DuplicateTable as error:
+        return
 
 def build_headers(auth_token):
     print(auth_token)
@@ -78,9 +84,33 @@ def build_headers(auth_token):
 
     return headers
 
+def process_SLO(service, connection, auth_token):
+    cursor = connection.cursor()
 
-def collect_SLO(auth_token):
-    url = 'https://prometheus.crcs02ue1.devshift.net/api/v1/query?query=sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[8h]))'
+    SLO_dict = collect_SLO(service, auth_token)
+    if not SLO_dict:
+        return
+
+    service_name = SLO_dict['service']
+    slo_datetime = SLO_dict['datetime']
+    slo_value = 1 - (float)(SLO_dict['SLO'])
+
+    print(service_name)
+    print(slo_datetime)
+    print(slo_value)
+
+    cursor.execute('insert into SLO values(%s, %s, %s)', (service_name, slo_datetime, slo_value))
+
+
+def collect_SLO(service, auth_token):
+    
+    try:
+        query = SLO_querys[service]
+    except:
+        print(f"Service {service} doesn't have a query assigned.")
+        return None
+
+    url = f'https://prometheus.crcs02ue1.devshift.net/api/v1/query?query={query}'
     headers = build_headers(auth_token)
     
     # For some reason the request will fail if the query is passed in through 'params'
@@ -99,21 +129,7 @@ def collect_SLO(auth_token):
         }
     except:
         print("Bad response from prometheus")
-
-
-
-def process_SLO(SLO_dict, connection):
-    cursor = connection.cursor()
-
-    service_name = SLO_dict['service']
-    slo_datetime = SLO_dict['datetime']
-    slo_value = 1 - (float)(SLO_dict['SLO'])
-
-    print(service_name)
-    print(slo_datetime)
-    print(slo_value)
-
-    cursor.execute('insert into SLO values(%s,%s, %s)', (service_name, slo_datetime, slo_value))
+        return None
 
 
 if __name__ == "__main__":
