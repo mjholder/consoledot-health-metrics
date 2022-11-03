@@ -12,6 +12,7 @@ import psycopg2
 # dictionary of service, SLO query pairs
 SLO_querys = {
     '3scale': 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))',
+    'rbac': '1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{environment="prod",exported_service="rbac"}[4h])'
 
 }
 
@@ -20,11 +21,7 @@ def main():
     auth_token = os.environ.get('AUTH_TOKEN')
 
     try:
-        connection = psycopg2.connect(  user=os.environ.get('DATABASE_USER'),
-                                        password = os.environ.get('DATABASE_PASSWORD'),
-                                        host = os.environ.get('POSTGRES_SQL_SERVICE_HOST'),
-                                        port = os.environ.get('POSTGRES_SQL_SERVICE_PORT'),
-                                        database = os.environ.get('DATABASE_NAME'))
+        connection = connect_db(60)
 
         connection.set_session(autocommit=True)
 
@@ -47,8 +44,24 @@ def main():
             # run every 10 min
             time.sleep(600)
     except (Exception, psycopg2.Error) as error:
-        print("Error while connecting to PostgreSQL", error)
-        print(type(error))
+        print("Error while using db connection", error)
+
+
+def connect_db(retry_interval):
+    while(True):
+        try:
+            connection = psycopg2.connect(  user=os.environ.get('DATABASE_USER'),
+                                                password = os.environ.get('DATABASE_PASSWORD'),
+                                                host = os.environ.get('POSTGRES_SQL_SERVICE_HOST'),
+                                                port = os.environ.get('POSTGRES_SQL_SERVICE_PORT'),
+                                                database = os.environ.get('DATABASE_NAME'))
+
+            return connection
+        except Exception as error:
+            print("Error while connecting to metrics-db", error)
+            print(f"Retyring connection in {retry_interval} seconds")
+        
+        time.sleep(retry_interval)
 
 
 def create_tables(connection):
@@ -66,7 +79,6 @@ def create_tables(connection):
         return
 
 def build_headers(auth_token):
-    print(auth_token)
     headers = {
         'authority': 'prometheus.crcs02ue1.devshift.net',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
