@@ -19,7 +19,16 @@ SLO_querys = {
 def main():
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
-        print(data)
+        services = data["SLO_Queries"]
+        for service in services:
+            service_name = service["service"]
+            queries = service["queries"]
+            for query_pair in queries:
+                metric = query_pair["metric"]
+                query = query_pair["query"]
+
+                print(f"We are querying for {metric} on the service {service_name} with the query {query}")
+
 
     auth_token = os.environ.get('AUTH_TOKEN')
 
