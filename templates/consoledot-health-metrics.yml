@@ -154,7 +154,7 @@ objects:
             - name: DATABASE_PASSWORD
               value: ${DB_SECRET_NAME}
             - name: AUTH_TOKEN
-              value: 
+              value: _oauth_proxy=bWpob2xkZXJAY2x1c3Rlci5sb2NhbA==|1666869415|8t-XCsAdxxNDK9Z2Mm82hfupcII=; 01412cd97ff4944ee6e5a5210393d5a6=dd8a76dbd2a9bff22d181a22e9a79e7f
           name: metric-scraper
           image: quay.io/rh_ee_maholder/consoledot-health-metrics:latest
           resources:
@@ -171,6 +171,13 @@ objects:
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
+        volumeMounts:
+        - name: config-vol
+          mountPath: /config
+    volumes:
+    - name: config-vol
+      configMap:
+        name: consoledot-health-metrics-config 
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:

@@ -10,14 +10,17 @@ import psycopg2
 
 
 # dictionary of service, SLO query pairs
+# platform, service, metric, query
 SLO_querys = {
-    '3scale': 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))',
-    'rbac': '1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{environment="prod",exported_service="rbac"}[4h])'
-
+    '3scale': ['error rate', 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))'],
 }
 
 
 def main():
+    with open("SLO_config.json") as slo_config:
+        data = json.load(slo_config)
+        print(data)
+
     auth_token = os.environ.get('AUTH_TOKEN')
 
     try:
@@ -71,6 +74,7 @@ def create_tables(connection):
             (
             SERVICE           TEXT    NOT NULL,
             datetime          TIMESTAMP,
+            SLO_name          TEXT,
             SLO_value         DOUBLE PRECISION); '''
 
         cursor.execute(create_table_query)
@@ -106,19 +110,21 @@ def process_SLO(service, connection, auth_token):
 
     service_name = SLO_dict['service']
     slo_datetime = SLO_dict['datetime']
+    slo_name = SLO_dict['SLO_name']
     slo_value = SLO_dict['SLO']
 
     print(service_name)
     print(slo_datetime)
+    print(slo_name)
     print(slo_value)
 
-    cursor.execute('insert into SLO values(%s, %s, %s)', (service_name, slo_datetime, slo_value))
+    cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
 
 
 def collect_SLO(service, auth_token):
     
     try:
-        query = SLO_querys[service]
+        query = SLO_querys[service][1]
     except:
         print(f"Service {service} doesn't have a query assigned.")
         return None
@@ -138,6 +144,7 @@ def collect_SLO(service, auth_token):
         return {
             'service': '3scale',
             'datetime': datetime.datetime.now(),
+            'SLO_name': SLO_querys[service][0],
             'SLO': response_json['data']['result'][0]['value'][1]
         }
     except:

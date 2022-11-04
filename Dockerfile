@@ -10,4 +10,5 @@ RUN pip install -r requirements.txt
 USER root
 WORKDIR /usr/app/src
 COPY metric_collector.py ./
+COPY SLO_config.json /config/SLO_config.json
 CMD ["python", "./metric_collector.py"]

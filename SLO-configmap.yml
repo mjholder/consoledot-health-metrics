@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: consoledot-health-metrics-config
+data:
+  prometheus-host: prometheus.crcs02ue1.devshift.net
+  SLO_config.json: |
+    {
+      "SLO_Queries" :[
+        {"3scale": [
+          {
+            "metric": "ERROR_RATE",
+            "query": "sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[8h]))"
+          }
+        ]},
+      ]
+    }
