@@ -17,7 +17,7 @@ SLO_querys = {
 
 
 def main():
-    with open("SLO_config.json") as slo_config:
+    with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
         print(data)
 
