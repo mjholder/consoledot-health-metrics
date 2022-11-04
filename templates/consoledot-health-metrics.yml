@@ -166,18 +166,18 @@ objects:
               memory: 250Mi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config-vol
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-        volumeMounts:
-        - name: config-vol
-          mountPath: /config
-    volumes:
-    - name: config-vol
-      configMap:
-        name: consoledot-health-metrics-config 
+        volumes:
+        - configMap:
+            name: consoledot-health-metrics-config
+          name: config-vol
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:

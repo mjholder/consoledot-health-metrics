@@ -7,11 +7,12 @@ data:
   SLO_config.json: |
     {
       "SLO_Queries" :[
-        {"3scale": [
+        { "service": "3scale",
+          "queries": [
           {
             "metric": "ERROR_RATE",
             "query": "sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[8h]))"
           }
-        ]},
+        ]}
       ]
     }
