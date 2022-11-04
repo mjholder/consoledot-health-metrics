@@ -11,12 +11,10 @@ import psycopg2
 
 # dictionary of service, SLO query pairs
 # platform, service, metric, query
-SLO_querys = {
-    '3scale': ['error rate', 'sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[10m]))'],
-}
+SLO_querys = {}
 
 
-def main():
+def main():   
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
         services = data["SLO_Queries"]
@@ -27,8 +25,7 @@ def main():
                 metric = query_pair["metric"]
                 query = query_pair["query"]
 
-                print(f"We are querying for {metric} on the service {service_name} with the query {query}")
-
+                SLO_querys[service_name] = [metric, query]
 
     auth_token = os.environ.get('AUTH_TOKEN')
 
