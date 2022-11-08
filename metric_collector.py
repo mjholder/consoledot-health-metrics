@@ -129,6 +129,7 @@ def process_SLO(service, connection, auth_token):
 
     cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
     s = Summary(slo_name, service_name)
+    print(type(slo_value))
     s.observe(slo_value)
 
 
