@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 requests = "*"
 psycopg2 = "*"
+prometheus-client = "==0.7.1"
+wheel = "*"
+setuptools = "*"
 
 [dev-packages]
 

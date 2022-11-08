@@ -7,6 +7,7 @@ import json
 import datetime
 import time
 import psycopg2
+from prometheus_client import start_http_server, Summary
 
 
 # dictionary of service, SLO query pairs
@@ -15,6 +16,8 @@ SLO_querys = {}
 
 
 def main():   
+    start_http_server(8000)
+
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
         services = data["SLO_Queries"]
@@ -125,6 +128,8 @@ def process_SLO(service, connection, auth_token):
     print(slo_value)
 
     cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
+    s = Summary(service_name, slo_name)
+    s.observe(slo_value)
 
 
 def collect_SLO(service, auth_token):
