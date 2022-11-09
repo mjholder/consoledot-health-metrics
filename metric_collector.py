@@ -66,7 +66,7 @@ def main():
                 if delta_slo > max_delta["delta"]:
                     max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
-        print(f"Worst performer is ")
+        print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
         s = Summary("health", max_delta['service'])
         s.observe(max_delta['delta'])
 
