@@ -62,10 +62,12 @@ def main():
         for service in SLO_querys.keys():
             for metric_key in SLO_querys[service].keys():
                 service_slo = process_SLO(service, metric_key, connection, auth_token)
-                delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
-                print(delta_slo)
-                if delta_slo > max_delta["delta"]:
-                    max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
+                # -1.0 is reserved for "no result"
+                if service_slo != -1.0:
+                    delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
+                    print(delta_slo)
+                    if delta_slo > max_delta["delta"]:
+                        max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
         s = Summary("health", max_delta['service'])
@@ -169,7 +171,7 @@ def collect_SLO(service, metric, auth_token):
         print(f"url = {response.url}\nresponse = {response_json}")
 
         if len(response_json['data']['result']) == 0:
-            SLO_value = 0.0
+            SLO_value = -1.0
             print(f"No data for query:{service}, {query}")
         else:
             SLO_value = response_json['data']['result'][0]['value'][1]
