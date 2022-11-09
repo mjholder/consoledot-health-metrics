@@ -62,7 +62,7 @@ def main():
         for service in SLO_querys.keys():
             for metric_key in SLO_querys[service].keys():
                 service_slo = process_SLO(service, metric_key, connection, auth_token)
-                delta_slo = service_slo - SLO_querys[service]["target_slo"]
+                delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
                 if delta_slo > max_delta["delta"]:
                     max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
