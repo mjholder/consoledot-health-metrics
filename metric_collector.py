@@ -141,7 +141,7 @@ def process_SLO(service, connection, auth_token):
     print(slo_value)
 
     cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
-    return SLO_dict
+    return slo_value
 
 
 def collect_SLO(service, auth_token):
@@ -175,7 +175,7 @@ def collect_SLO(service, auth_token):
             'service': service,
             'datetime': datetime.datetime.now(),
             'SLO_name': SLO_querys[service]["metric"],
-            'SLO': SLO_value,
+            'SLO': float(SLO_value),
             'target_slo': SLO_querys[service]
         }
     except:
