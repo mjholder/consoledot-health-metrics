@@ -23,7 +23,7 @@ def main():
         services = data["SLO_Queries"]
         for service in services:
             service_name = service["service"]
-            SLO_querys[service] = {}
+            SLO_querys[service_name] = {}
             queries = service["queries"]
             for query_object in queries:
                 metric = query_object["metric"]
