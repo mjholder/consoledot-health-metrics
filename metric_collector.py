@@ -27,12 +27,12 @@ def main():
             for query_object in queries:
                 metric = query_object["metric"]
                 query = query_object["query"]
-                slo_target = float(query_object["slo_target"])
+                target_slo = float(query_object["target_slo"])
 
                 SLO_querys[service_name] = {
                     "metric": metric,
                     "query": query,
-                    "slo_target": slo_target
+                    "target_slo": target_slo
                 }
 
     auth_token = os.environ.get('AUTH_TOKEN')
@@ -59,7 +59,7 @@ def main():
 
             for service in SLO_querys.keys():
                 service_slo = process_SLO(service, connection, auth_token)
-                delta_slo = service_slo - SLO_querys[service]["slo_target"]
+                delta_slo = service_slo - SLO_querys[service]["target_slo"]
                 if delta_slo > max_delta["delta"]:
                     max_delta = {"service": service, "delta": delta_slo}
  
@@ -176,7 +176,7 @@ def collect_SLO(service, auth_token):
             'datetime': datetime.datetime.now(),
             'SLO_name': SLO_querys[service]["metric"],
             'SLO': SLO_value,
-            'SLO_target': SLO_querys[service]
+            'target_slo': SLO_querys[service]
         }
     except:
         print("Bad response from prometheus")
