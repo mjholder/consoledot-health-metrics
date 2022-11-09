@@ -65,6 +65,7 @@ def main():
                 delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
                 if delta_slo > max_delta["delta"]:
                     max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
+                    print(max_delta)
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
         s = Summary("health", max_delta['service'])
