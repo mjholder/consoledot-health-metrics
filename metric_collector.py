@@ -178,7 +178,7 @@ def collect_SLO(service, metric, auth_token):
             'datetime': datetime.datetime.now(),
             'SLO_name': metric,
             'SLO': float(SLO_value),
-            'target_slo': SLO_querys[service]["target_slo"]
+            'target_slo': SLO_querys[service][metric]["target_slo"]
         }
     except:
         print("Bad response from prometheus")
