@@ -53,25 +53,25 @@ def main():
         print("You are connected to - ", record, "\n")
 
         create_tables(connection)
-
-        while(True):
-            max_delta = {"service": "", "metric": "", "delta": 0}
-
-            for service in SLO_querys.keys():
-                for query in SLO_querys[service]:
-                    service_slo = process_SLO(service, query['metric'], connection, auth_token)
-                    delta_slo = service_slo - SLO_querys[service]["target_slo"]
-                    if delta_slo > max_delta["delta"]:
-                        max_delta = {"service": service, "metric": query['metric'], "delta": delta_slo}
- 
-            print(f"Worst performer is ")
-            s = Summary("health", max_delta['service'])
-            s.observe(max_delta['delta'])
-
-            # run every 10 min
-            time.sleep(600)
     except (Exception, psycopg2.Error) as error:
         print("Error while using db connection", error)
+
+    while(True):
+        max_delta = {"service": "", "metric": "", "delta": 0}
+
+        for service in SLO_querys.keys():
+            for query in SLO_querys[service]:
+                service_slo = process_SLO(service, query['metric'], connection, auth_token)
+                delta_slo = service_slo - SLO_querys[service]["target_slo"]
+                if delta_slo > max_delta["delta"]:
+                    max_delta = {"service": service, "metric": query['metric'], "delta": delta_slo}
+
+        print(f"Worst performer is ")
+        s = Summary("health", max_delta['service'])
+        s.observe(max_delta['delta'])
+
+        # run every 10 min
+        time.sleep(600)
 
 
 def connect_db(retry_interval):
