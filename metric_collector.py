@@ -24,11 +24,16 @@ def main():
         for service in services:
             service_name = service["service"]
             queries = service["queries"]
-            for query_pair in queries:
-                metric = query_pair["metric"]
-                query = query_pair["query"]
+            for query_object in queries:
+                metric = query_object["metric"]
+                query = query_object["query"]
+                slo_target = float(query_object["slo_target"])
 
-                SLO_querys[service_name] = [metric, query]
+                SLO_querys[service_name] = {
+                    "metric": metric,
+                    "query": query,
+                    "slo_target": slo_target
+                }
 
     auth_token = os.environ.get('AUTH_TOKEN')
 
@@ -50,8 +55,16 @@ def main():
         create_tables(connection)
 
         while(True):
+            max_delta = {"service": "", "delta": 0}
+
             for service in SLO_querys.keys():
-                process_SLO(service, connection, auth_token)
+                service_slo = process_SLO(service, connection, auth_token)
+                delta_slo = service_slo - SLO_querys[service]["slo_target"]
+                if delta_slo > max_delta["delta"]:
+                    max_delta = {"service": service, "delta": delta_slo}
+ 
+            s = Summary("health", max_delta['service'])
+            s.observe(max_delta['delta'])
 
             # run every 10 min
             time.sleep(600)
@@ -128,14 +141,13 @@ def process_SLO(service, connection, auth_token):
     print(slo_value)
 
     cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
-    s = Summary(slo_name, service_name)
-    s.observe(float(slo_value))
+    return SLO_dict
 
 
 def collect_SLO(service, auth_token):
     
     try:
-        query = SLO_querys[service][1]
+        query = SLO_querys[service]["query"]
     except:
         print(f"Service {service} doesn't have a query assigned.")
         return None
@@ -152,11 +164,19 @@ def collect_SLO(service, auth_token):
     try:
         response_json = response.json()
         print(f"url = {response.url}\nresponse = {response_json}")
+
+        if len(response_json['data']['result']) == 0:
+            SLO_value = 0.0
+            print(f"No data for query:{service}, {query}")
+        else:
+            SLO_value = response_json['data']['result'][0]['value'][1]
+        
         return {
-            'service': '3scale',
+            'service': service,
             'datetime': datetime.datetime.now(),
-            'SLO_name': SLO_querys[service][0],
-            'SLO': response_json['data']['result'][0]['value'][1]
+            'SLO_name': SLO_querys[service]["metric"],
+            'SLO': SLO_value,
+            'SLO_target': SLO_querys[service]
         }
     except:
         print("Bad response from prometheus")
