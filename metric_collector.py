@@ -23,14 +23,14 @@ def main():
         services = data["SLO_Queries"]
         for service in services:
             service_name = service["service"]
+            SLO_querys[service_name] = []
             queries = service["queries"]
             for query_object in queries:
                 metric = query_object["metric"]
                 query = query_object["query"]
                 target_slo = float(query_object["target_slo"])
 
-                SLO_querys[service_name] = {
-                    "metric": metric,
+                SLO_querys[service_name][metric] = {
                     "query": query,
                     "target_slo": target_slo
                 }
@@ -55,14 +55,16 @@ def main():
         create_tables(connection)
 
         while(True):
-            max_delta = {"service": "", "delta": 0}
+            max_delta = {"service": "", "metric": "", "delta": 0}
 
             for service in SLO_querys.keys():
-                service_slo = process_SLO(service, connection, auth_token)
-                delta_slo = service_slo - SLO_querys[service]["target_slo"]
-                if delta_slo > max_delta["delta"]:
-                    max_delta = {"service": service, "delta": delta_slo}
+                for query in SLO_querys[service]:
+                    service_slo = process_SLO(service, query['metric'], connection, auth_token)
+                    delta_slo = service_slo - SLO_querys[service]["target_slo"]
+                    if delta_slo > max_delta["delta"]:
+                        max_delta = {"service": service, "metric": query['metric'], "delta": delta_slo}
  
+            print(f"Worst performer is ")
             s = Summary("health", max_delta['service'])
             s.observe(max_delta['delta'])
 
@@ -123,10 +125,10 @@ def build_headers(auth_token):
 
     return headers
 
-def process_SLO(service, connection, auth_token):
+def process_SLO(service, metric, connection, auth_token):
     cursor = connection.cursor()
 
-    SLO_dict = collect_SLO(service, auth_token)
+    SLO_dict = collect_SLO(service, metric, auth_token)
     if not SLO_dict:
         return
 
@@ -144,10 +146,10 @@ def process_SLO(service, connection, auth_token):
     return slo_value
 
 
-def collect_SLO(service, auth_token):
+def collect_SLO(service, metric, auth_token):
     
     try:
-        query = SLO_querys[service]["query"]
+        query = SLO_querys[service][metric]["query"]
     except:
         print(f"Service {service} doesn't have a query assigned.")
         return None
@@ -174,9 +176,9 @@ def collect_SLO(service, auth_token):
         return {
             'service': service,
             'datetime': datetime.datetime.now(),
-            'SLO_name': SLO_querys[service]["metric"],
+            'SLO_name': metric,
             'SLO': float(SLO_value),
-            'target_slo': SLO_querys[service]
+            'target_slo': SLO_querys[service]["target_slo"]
         }
     except:
         print("Bad response from prometheus")
