@@ -60,11 +60,11 @@ def main():
         max_delta = {"service": "", "metric": "", "delta": 0}
 
         for service in SLO_querys.keys():
-            for query in SLO_querys[service]:
-                service_slo = process_SLO(service, query['metric'], connection, auth_token)
+            for metric_key in SLO_querys[service].keys():
+                service_slo = process_SLO(service, metric_key, connection, auth_token)
                 delta_slo = service_slo - SLO_querys[service]["target_slo"]
                 if delta_slo > max_delta["delta"]:
-                    max_delta = {"service": service, "metric": query['metric'], "delta": delta_slo}
+                    max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
         print(f"Worst performer is ")
         s = Summary("health", max_delta['service'])
