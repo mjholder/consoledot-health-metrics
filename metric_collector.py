@@ -7,7 +7,7 @@ import json
 import datetime
 import time
 import psycopg2
-from prometheus_client import start_http_server, Summary
+from prometheus_client import start_http_server, Histogram
 
 
 # dictionary of service, SLO query pairs
@@ -17,7 +17,7 @@ SLO_querys = {}
 
 def main():   
     start_http_server(8000)
-    s = Summary("delta_slo", "Least performant service")
+    h = Histogram("delta_slo", "Least performant service")
 
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
@@ -75,7 +75,7 @@ def main():
                         max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
-        s.observe(max_delta['delta'])
+        h.observe(max_delta['delta'], {"service": max_delta['service'], "metric": max_delta['metric']})
 
         # run every 10 min
         time.sleep(600)
