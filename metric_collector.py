@@ -17,6 +17,7 @@ SLO_querys = {}
 
 def main():   
     start_http_server(8000)
+    s = Summary("health", max_delta['service'])
 
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
@@ -64,13 +65,16 @@ def main():
                 service_slo = process_SLO(service, metric_key, connection, auth_token)
                 # -1.0 is reserved for "no result"
                 if service_slo != -1.0:
-                    delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
+                    # Failure rate vs Success Rate require different comparisons. Decided by assumption that services should have a >50% success rate
+                    if SLO_querys[service][metric_key]["target_slo"] > 0.5:
+                        delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
+                    else:
+                        delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
                     print(delta_slo)
                     if delta_slo > max_delta["delta"]:
                         max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
-        s = Summary("health", max_delta['service'])
         s.observe(max_delta['delta'])
 
         # run every 10 min
