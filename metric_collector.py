@@ -67,9 +67,11 @@ def main():
                 if service_slo != -1.0:
                     # Failure rate vs Success Rate require different comparisons. Decided by assumption that services should have a >50% success rate
                     if SLO_querys[service][metric_key]["target_slo"] > 0.5:
-                        delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
-                    else:
+                        print(f"target success rate of {SLO_querys[service][metric_key]['target_slo']}")
                         delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
+                    else:
+                        print(f"target failure rate of {SLO_querys[service][metric_key]['target_slo']}")
+                        delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
                     print(delta_slo)
                     if delta_slo > max_delta["delta"]:
                         max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
