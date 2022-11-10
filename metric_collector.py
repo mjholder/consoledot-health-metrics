@@ -17,7 +17,7 @@ SLO_querys = {}
 
 def main():   
     start_http_server(8000)
-    s = Summary("health", max_delta['service'])
+    s = Summary("delta_slo", "Least performant service")
 
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
