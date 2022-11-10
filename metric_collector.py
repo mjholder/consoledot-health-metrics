@@ -75,7 +75,7 @@ def main():
                         max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
-        h.observe(max_delta['delta'], {"service": max_delta['service'], "metric": max_delta['metric']})
+        h.observe(max_delta['delta'], {"service_metric": f"{max_delta['service']}_{max_delta['metric']}"})
 
         # run every 10 min
         time.sleep(600)
