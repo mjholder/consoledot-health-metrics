@@ -12,14 +12,14 @@ data:
           {
             "metric": "ERROR_RATE",
             "query": "sum(rate(api_3scale_gateway_api_status{status=%225xx%22}[8h]))/sum(rate(api_3scale_gateway_api_status[8h]))",
-            "target_slo": 0.001
+            "target_slo": 0.0001
           }
         ]},
         { "service": "entitlements",
           "queries": [
           {
             "metric": "ERROR_RATE",
-            "query": "sum(rate(api_3scale_gateway_api_status{status="5xx",%20exported_service="entitlements"}[4h]))%20/%20sum(rate(api_3scale_gateway_api_status{exported_service="entitlements"}[4h]))",
+            "query": "sum(rate(api_3scale_gateway_api_status{status=%225xx%22,%20exported_service=%22entitlements%22}[4h]))%20/%20sum(rate(api_3scale_gateway_api_status{exported_service=%22entitlements%22}[4h]))",
             "target_slo": 0.01
           }
         ]},
@@ -27,7 +27,7 @@ data:
           "queries": [
           {
             "metric": "ERROR_RATE",
-            "query": "1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{environment="prod",exported_service="rbac"}[4h])",
+            "query": "1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{environment=%22prod%22,exported_service=%22rbac%22}[4h])",
             "target_slo": 0.99
           }
         ]}
