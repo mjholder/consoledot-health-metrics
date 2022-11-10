@@ -67,10 +67,8 @@ def main():
                 if service_slo != -1.0:
                     # Failure rate vs Success Rate require different comparisons. Decided by assumption that services should have a >50% success rate
                     if SLO_querys[service][metric_key]["target_slo"] > 0.5:
-                        print(f"target success rate of {SLO_querys[service][metric_key]['target_slo']}")
                         delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
                     else:
-                        print(f"target failure rate of {SLO_querys[service][metric_key]['target_slo']}")
                         delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
                     print(delta_slo)
                     if delta_slo > max_delta["delta"]:
@@ -145,11 +143,6 @@ def process_SLO(service, metric, connection, auth_token):
     slo_datetime = SLO_dict['datetime']
     slo_name = SLO_dict['SLO_name']
     slo_value = SLO_dict['SLO']
-
-    print(service_name)
-    print(slo_datetime)
-    print(slo_name)
-    print(slo_value)
 
     cursor.execute('insert into SLO values(%s, %s, %s, %s)', (service_name, slo_datetime, slo_name, slo_value))
     return slo_value
