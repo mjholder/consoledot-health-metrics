@@ -1,0 +1,68 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: grafana
+objects:
+- apiVersion: apps/v1
+kind: Deployment
+metadata:
+labels:
+  app: grafana
+name: grafana
+spec:
+selector:
+  matchLabels:
+  app: grafana
+template:
+  metadata:
+  labels:
+    app: grafana
+  spec:
+  securityContext:
+    fsGroup: 472
+    supplementalGroups:
+    - 0
+    containers:
+      - env:
+        ports:
+          - containerPort: 3000
+            protocol: TCP
+        name: grafana
+        image: grafana/grafana:9.1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+            requests:
+            cpu: 250m
+            memory: 750Mi
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: grafana-pv
+      volumes:
+      - name: grafana-pv
+          persistentVolumeClaim:
+          claimName: grafana-pvc
+- apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+  selector:
+    app: grafana
+  sessionAffinity: None
+  type: LoadBalancer
+- apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: grafana-pvc
+    template: grafana-pvc
+  name: grafana-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
