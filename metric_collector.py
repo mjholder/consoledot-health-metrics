@@ -15,7 +15,7 @@ from prometheus_client import start_http_server, Histogram
 SLO_querys = {}
 
 
-def main():   
+def main():
     start_http_server(8000)
     h = Histogram("delta_slo", "Least performant service")
 
@@ -170,8 +170,8 @@ def collect_SLO(service, metric, auth_token):
         print(f"url = {response.url}\nresponse = {response_json}")
 
         if len(response_json['data']['result']) == 0:
-            SLO_value = -1.0
             print(f"No data for query:{service}, {query}")
+            return None
         else:
             SLO_value = response_json['data']['result'][0]['value'][1]
         
