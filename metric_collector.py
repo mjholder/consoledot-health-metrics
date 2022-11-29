@@ -63,8 +63,7 @@ def main():
         for service in SLO_querys.keys():
             for metric_key in SLO_querys[service].keys():
                 service_slo = process_SLO(service, metric_key, connection, auth_token)
-                # -1.0 is reserved for "no result"
-                if service_slo != -1.0:
+                if service_slo:
                     # Failure rate vs Success Rate require different comparisons. Decided by assumption that services should have a >50% success rate
                     if SLO_querys[service][metric_key]["target_slo"] > 0.5:
                         delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
@@ -137,7 +136,7 @@ def process_SLO(service, metric, connection, auth_token):
 
     SLO_dict = collect_SLO(service, metric, auth_token)
     if not SLO_dict:
-        return
+        return None
 
     service_name = SLO_dict['service']
     slo_datetime = SLO_dict['datetime']
