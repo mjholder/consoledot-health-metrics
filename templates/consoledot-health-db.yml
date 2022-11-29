@@ -110,7 +110,7 @@ objects:
     selector:
       app: metrics-db
     sessionAffinity: None
-    type: ClusterIP
+    type: ClusterIP 
   status:
     loadBalancer: {}
 parameters:

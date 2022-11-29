@@ -95,6 +95,26 @@ objects:
         - configMap:
             name: consoledot-health-metrics-config
           name: config-vol
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: consoledot-health-metrics
+    name: consoledot-health-metrics
+  spec:
+    ports:
+    - name: 8000-tcp
+      port: 8000
+      protocol: TCP
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+    selector:
+      app: consoledot-health-metrics
+    sessionAffinity: None
+    type: ClusterIP 
+  status:
+    loadBalancer: {}
 parameters:
 - description: The number of replicas to use in the deployment
   name: REPLICAS
