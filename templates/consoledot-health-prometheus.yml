@@ -60,7 +60,6 @@ objects:
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus/"
-          command: ["/bin/sh", "chmod"]
           resources:
             limits:
               cpu: 500m
