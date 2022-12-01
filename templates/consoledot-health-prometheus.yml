@@ -56,7 +56,7 @@ objects:
             - containerPort: 9000
               protocol: TCP
           name: prometheus
-          image: registry.redhat.io/openshift3/prometheus
+          image: registry.redhat.io/openshift4/ose-prometheus
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus/"
