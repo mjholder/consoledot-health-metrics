@@ -69,13 +69,11 @@ def main():
                         delta_slo = SLO_querys[service][metric_key]["target_slo"] - service_slo
                     else:
                         delta_slo = service_slo - SLO_querys[service][metric_key]["target_slo"]
-                    print(delta_slo)
                     if delta_slo > max_delta["delta"]:
-                        max_delta = {"service": service, "metric": metric_key, "delta": delta_slo}
+                        max_delta = {"service": service, "metric": metric_key, "current_slo": service_slo, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
-        #h.observe(amount=max_delta['delta'], exemplar={"service": max_delta['service'], "metric": max_delta['metric']})
-        g.labels(service=max_delta['service'], metric=max_delta['metric']).set(max_delta['delta'])
+        g.labels(service=max_delta['service'], metric=max_delta['metric']).set(max_delta['current_slo'])
 
         # run every 10 min
         time.sleep(600)
