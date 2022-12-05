@@ -58,7 +58,7 @@ objects:
           name: prometheus
           image: registry.redhat.io/openshift4/ose-prometheus
           args:
-            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--config.file=/config/prometheus_2.yml"
             - "--storage.tsdb.path=/prometheus/"
           resources:
             limits:
@@ -69,21 +69,21 @@ objects:
               memory: 250Mi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /config
+            name: config-vol
+          - mountPath: /prometheus/
+            name: prometheus-storage-volume
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
-        volumeMounts:
-        - mountPath: /etc/prometheus/
-          name: prometheus-config
-        - mountPath: /prometheus/
-          name: prometheus-storage-volume
         volumes:
-        - name: prometheus-config
-          configMap:
-            defaultMode: 420
+        volumes:
+        - configMap:
             name: prometheus-server-conf
+          name: config-vol
         - name: prometheus-storage-volume
           persistantVolumeClaim:
             claimName: prometheus
