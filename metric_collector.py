@@ -17,7 +17,7 @@ SLO_querys = {}
 
 def main():
     start_http_server(8000)
-    g = Gauge("delta_slo", "Least performant service")
+    g = Gauge("delta_slo", "Least performant service", ["service", "metric"])
 
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
