@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: prometheus-server-conf
 data:
-  prometheus.yml: |
+  prometheus_2.yml: |
     # my global config
     global:
       scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
@@ -32,4 +32,4 @@ data:
         # scheme defaults to 'http'.
 
         static_configs:
-          - targets: ["health-metrics-prometheus-ephemeral-jv3bcl.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com"]
+          - targets: ["health-metrics-exporter-ephemeral-9o8rmy.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com"]
