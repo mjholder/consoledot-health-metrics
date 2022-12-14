@@ -9,6 +9,8 @@ psycopg2 = "*"
 wheel = "*"
 setuptools = "*"
 prometheus-client = "~=0.15.0"
+flask = "*"
+pdpyras = "*"
 
 [dev-packages]
 

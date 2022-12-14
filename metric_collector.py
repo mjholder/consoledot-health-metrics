@@ -8,6 +8,7 @@ import datetime
 import time
 import psycopg2
 from prometheus_client import start_http_server, Gauge
+from pdpyras import APISession
 
 
 # dictionary of service, SLO query pairs
@@ -16,9 +17,11 @@ SLO_querys = {}
 
 
 def main():
+    # prometheus exporter startup
     start_http_server(8000)
     g = Gauge("delta_slo", "Least performant service", ["service", "metric"])
 
+    # Loading config file and initializing query dictionary
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
         services = data["SLO_Queries"]
@@ -38,6 +41,7 @@ def main():
 
     auth_token = os.environ.get('AUTH_TOKEN')
 
+    # Connecting to DB and building tables
     try:
         connection = connect_db(60)
 
@@ -57,6 +61,7 @@ def main():
     except (Exception, psycopg2.Error) as error:
         print("Error while using db connection", error)
 
+    # Main execution loop for SLOs
     while(True):
         max_delta = {"service": "", "metric": "", "delta": 0}
 
@@ -78,6 +83,16 @@ def main():
         # run every 10 min
         time.sleep(600)
 
+
+def query_pagerduty():
+    # PagerDuty setup
+    api_key = os.environ['PD_API_KEY']
+    session = APISession(api_key, default_from="api@example-company.com")
+
+    incidents = session.list_all(
+        'incidents',
+        params={'statuses[]':['resolved']}
+    )
 
 def connect_db(retry_interval):
     while(True):
