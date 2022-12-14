@@ -27,7 +27,7 @@ data:
           "queries": [
           {
             "metric": "ERROR_RATE",
-            "query": "1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{environment=%22prod%22,exported_service=%22rbac%22}[4h])",
+            "query": "1 - avg_over_time(service:sli:status_5xx:pctl5rate5m{exported_service=%22rbac%22}[4h])",
             "target_slo": 0.99
           }
         ]}
