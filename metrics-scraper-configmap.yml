@@ -4,6 +4,13 @@ metadata:
   name: consoledot-health-metrics-config
 data:
   prometheus-host: prometheus.crcs02ue1.devshift.net
+  Deployment_config.json: |
+    {
+      "apps": [
+        "rbac",
+        "entitlements"
+      ]
+    }
   SLO_config.json: |
     {
       "SLO_Queries" :[
