@@ -17,7 +17,8 @@ SLO_querys = {}
 
 def main():
     start_http_server(8000)
-    g = Gauge("delta_slo", "Least performant service", ["service", "metric"])
+    slo_gauge = Gauge("delta_slo", "Least performant service", ["service", "metric"])
+    deployment_success_gauge = Gauge("deployment_success", "Number of successfull deployments in rolling 30 day period", ["app_name"])
 
     with open("/config/SLO_config.json") as slo_config:
         data = json.load(slo_config)
@@ -36,7 +37,7 @@ def main():
                     "target_slo": target_slo
                 }
 
-    auth_token = os.environ.get('AUTH_TOKEN')
+    auth_token = os.environ.get('PROMETHEUS_AUTH_TOKEN')
 
     try:
         connection = connect_db(60)
@@ -73,10 +74,48 @@ def main():
                         max_delta = {"service": service, "metric": metric_key, "current_slo": service_slo, "delta": delta_slo}
 
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
-        g.labels(service=max_delta['service'], metric=max_delta['metric']).set(max_delta['current_slo'])
+        slo_gauge.labels(service=max_delta['service'], metric=max_delta['metric']).set(max_delta['current_slo'])
+
+        deployment_data = collect_deployments()
+        for deployment in deployment_data:
+            deployment_success_gauge.labels(app_name=deployment).set(deployment_data[deployment])
 
         # run every 10 min
         time.sleep(600)
+
+
+def collect_deployments():
+    conn = psycopg2.connect(
+        database=os.environ.get('DEPLOYMENT_DB_NAME'),
+        user=os.environ.get('DEPLOYMENT_DB_USER'),
+        host=os.environ.get('DEPLOYMENT_DB_HOST'),
+        password=os.environ.get('DEPLOYMENT_DB_PASSWORD'),
+    )
+
+    apps = {
+        'rbac': 0,
+        'entitlements': 0,
+    }
+
+    cursor = conn.cursor()
+    sql_query = (
+                 'select deployment_time, succeeded, app_name, env_name\n'
+                 'from deployments\n'
+                f'where deployment_time >= current_date - {30}\n'
+                 'and app_name in %s\n'
+                 'and env_name = %s\n'
+                 'order by app_name\n'
+                )
+    cursor.execute(sql_query, (tuple(apps), 'insights-production'))
+    deployment_records = cursor.fetchall()
+
+    for record in deployment_records:
+        # successful deployment
+        if record[1]:
+            apps[record[2]] += 1
+
+    conn.close()
+    return apps
 
 
 def connect_db(retry_interval):

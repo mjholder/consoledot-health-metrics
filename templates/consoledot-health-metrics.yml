@@ -70,8 +70,16 @@ objects:
               value: ${DB_SECRET_NAME}
             - name: DATABASE_PASSWORD
               value: ${DB_SECRET_NAME}
-            - name: AUTH_TOKEN
+            - name: PROMETHEUS_AUTH_TOKEN
               value: 
+            - name: DEPLOYMENT_DB_HOST
+              value: deploy-events-db.cgkhgcepvyrh.us-east-1.rds.amazonaws.com
+            - name: DEPLOYMENT_DB_NAME
+              value: postgres
+            - name: DEPLOYMENT_DB_USER
+              value: postgres
+            - name: DEPLOYMENT_DB_PASSWORD
+              value:
           name: metric-scraper
           image: quay.io/rh_ee_maholder/consoledot-health-metrics:latest
           resources:
