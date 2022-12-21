@@ -64,7 +64,8 @@ def main():
         print(f"Worst performer is {max_delta['service']}, {max_delta['metric']} with a delta of {max_delta['delta']}")
         slo_gauge.labels(service=max_delta['service'], metric=max_delta['metric']).set(max_delta['current_slo'])
 
-        deployment_data = collect_deployments()
+        apps = configure_deployment_tracker()
+        deployment_data = collect_deployments(apps)
         for deployment in deployment_data:
             deployment_success_gauge.labels(app_name=deployment).set(deployment_data[deployment]['successes'])
             deployment_failure_gauge.labels(app_name=deployment).set(deployment_data[deployment]['failures'])
@@ -92,19 +93,22 @@ def configure_SLO_querys():
                 }
 
                 
-def collect_deployments():
+def configure_deployment_tracker():
+    apps = {}
+    with open("/config/deployment_config.json") as deploy_config:
+        data = json.load(deploy_config)
+        for app in data["apps"]:
+            apps[app] = {"successes": 0, "failures": 0}
+
+    return apps
+
+def collect_deployments(apps):
     conn = psycopg2.connect(
         database=os.environ.get('DEPLOYMENT_DB_NAME'),
         user=os.environ.get('DEPLOYMENT_DB_USER'),
         host=os.environ.get('DEPLOYMENT_DB_HOST'),
         password=os.environ.get('DEPLOYMENT_DB_PASSWORD'),
     )
-
-    apps = {
-        'rbac': {'successes': 0, 'failures': 0},
-        'entitlements': {'successes': 0, 'failures': 0},
-        'hccm-clowder': {'successes': 0, 'failures': 0},
-    }
 
     cursor = conn.cursor()
     sql_query = (
