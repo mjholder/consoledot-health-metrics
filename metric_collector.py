@@ -19,26 +19,13 @@ def main():
     start_http_server(8000)
     slo_gauge = Gauge("delta_slo", "Least performant service", ["service", "metric"])
     deployment_success_gauge = Gauge("deployment_success", "Number of successfull deployments in rolling 30 day period", ["app_name"])
-
-    with open("/config/SLO_config.json") as slo_config:
-        data = json.load(slo_config)
-        services = data["SLO_Queries"]
-        for service in services:
-            service_name = service["service"]
-            SLO_querys[service_name] = {}
-            queries = service["queries"]
-            for query_object in queries:
-                metric = query_object["metric"]
-                query = query_object["query"]
-                target_slo = float(query_object["target_slo"])
-
-                SLO_querys[service_name][metric] = {
-                    "query": query,
-                    "target_slo": target_slo
-                }
+    deployment_failure_gauge = Gauge("deployment_failure", "Number of failed deployments in rolling 30 day period", ["app_name"])
+    
+    configure_SLO_querys()
 
     auth_token = os.environ.get('PROMETHEUS_AUTH_TOKEN')
 
+    # Connect to db and initialize tables
     try:
         connection = connect_db(60)
 
@@ -58,6 +45,7 @@ def main():
     except (Exception, psycopg2.Error) as error:
         print("Error while using db connection", error)
 
+    # Main processing loop
     while(True):
         max_delta = {"service": "", "metric": "", "delta": 0}
 
@@ -78,12 +66,32 @@ def main():
 
         deployment_data = collect_deployments()
         for deployment in deployment_data:
-            deployment_success_gauge.labels(app_name=deployment).set(deployment_data[deployment])
+            deployment_success_gauge.labels(app_name=deployment).set(deployment_data[deployment]['successes'])
+            deployment_failure_gauge.labels(app_name=deployment).set(deployment_data[deployment]['failures'])
 
         # run every 10 min
         time.sleep(600)
 
 
+def configure_SLO_querys():
+    with open("/config/SLO_config.json") as slo_config:
+        data = json.load(slo_config)
+        services = data["SLO_Queries"]
+        for service in services:
+            service_name = service["service"]
+            SLO_querys[service_name] = {}
+            queries = service["queries"]
+            for query_object in queries:
+                metric = query_object["metric"]
+                query = query_object["query"]
+                target_slo = float(query_object["target_slo"])
+
+                SLO_querys[service_name][metric] = {
+                    "query": query,
+                    "target_slo": target_slo
+                }
+
+                
 def collect_deployments():
     conn = psycopg2.connect(
         database=os.environ.get('DEPLOYMENT_DB_NAME'),
@@ -93,8 +101,9 @@ def collect_deployments():
     )
 
     apps = {
-        'rbac': 0,
-        'entitlements': 0,
+        'rbac': {'successes': 0, 'failures': 0},
+        'entitlements': {'successes': 0, 'failures': 0},
+        'hccm-clowder': {'successes': 0, 'failures': 0},
     }
 
     cursor = conn.cursor()
@@ -112,7 +121,9 @@ def collect_deployments():
     for record in deployment_records:
         # successful deployment
         if record[1]:
-            apps[record[2]] += 1
+            apps[record[2]]['successes'] += 1
+        else:
+            apps[record[2]]['failures'] += 1
 
     conn.close()
     return apps
