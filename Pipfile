@@ -10,6 +10,7 @@ wheel = "*"
 setuptools = "*"
 prometheus-client = "~=0.15.0"
 pandas = "*"
+pdpyras = "*"
 
 [dev-packages]
 

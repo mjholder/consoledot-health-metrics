@@ -79,7 +79,9 @@ objects:
             - name: DEPLOYMENT_DB_USER
               value: postgres
             - name: DEPLOYMENT_DB_PASSWORD
-              value:
+              value: Gcqj59LPT9QcUC647cDt
+            - name: PD_API_KEY
+              value: 
           name: metric-scraper
           image: quay.io/rh_ee_maholder/consoledot-health-metrics:latest
           resources:

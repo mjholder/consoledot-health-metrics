@@ -9,7 +9,8 @@ data:
       "apps": [
         "rbac",
         "entitlements",
-        "hccm-clowder"
+        "hccm-clowder",
+        "kibana"
       ]
     }
   SLO_config.json: |

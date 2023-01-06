@@ -5,9 +5,11 @@ import os
 import urllib
 import json
 import datetime
+import dateutil.parser
 import time
 import psycopg2
 from prometheus_client import start_http_server, Gauge
+from pdpyras import APISession
 
 
 # dictionary of service, SLO query pairs
@@ -20,6 +22,7 @@ def main():
     slo_gauge = Gauge("delta_slo", "Least performant service", ["service", "metric"])
     deployment_success_gauge = Gauge("deployment_success", "Number of successfull deployments in rolling 30 day period", ["app_name"])
     deployment_failure_gauge = Gauge("deployment_failure", "Number of failed deployments in rolling 30 day period", ["app_name"])
+    time_to_resolution_gauge = Gauge("time_to_resolution", "Rolling 30 day average time to resolution")
     
     configure_SLO_querys()
 
@@ -70,8 +73,39 @@ def main():
             deployment_success_gauge.labels(app_name=deployment).set(deployment_data[deployment]['successes'])
             deployment_failure_gauge.labels(app_name=deployment).set(deployment_data[deployment]['failures'])
 
+        average_time_to_resolution = query_pagerduty()
+        time_to_resolution_gauge.set(average_time_to_resolution / datetime.timedelta(minutes=1))
+
         # run every 10 min
         time.sleep(600)
+
+
+def query_pagerduty():
+    # PagerDuty setup
+    api_key = os.environ['PD_API_KEY']
+    until = datetime.datetime.now()
+    since = until - datetime.timedelta(days=30)
+
+    session = APISession(api_key, default_from="api@example-company.com")
+    session.retry[500] = 4
+    session.max_http_attempts = 4
+    session.sleep_timer = 1
+    session.sleep_timer_base = 2
+    total_time_diff = datetime.timedelta()
+    incident_count = 0
+
+    for incident in session.iter_all('incidents', params={'statuses[]':['resolved'], 'since':since.isoformat(), 'until':until.isoformat(), 'team_ids[]':['PQQJJHI']}):
+        print(f"{incident['title']} \ncreated on {incident['created_at']}\nresolved on {incident['last_status_change_at']}")
+        time_diff = dateutil.parser.isoparse(incident['last_status_change_at']) - dateutil.parser.isoparse(incident['created_at'])
+        total_time_diff += time_diff
+        incident_count += 1
+    
+    import pdb
+    pdb.set_trace()
+    average_time_to_resolution = total_time_diff/incident_count
+    print(f"average time to resolution 30 days: {average_time_to_resolution}")
+    return average_time_to_resolution
+    
 
 
 def configure_SLO_querys():
