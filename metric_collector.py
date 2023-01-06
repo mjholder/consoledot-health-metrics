@@ -99,9 +99,7 @@ def query_pagerduty():
         time_diff = dateutil.parser.isoparse(incident['last_status_change_at']) - dateutil.parser.isoparse(incident['created_at'])
         total_time_diff += time_diff
         incident_count += 1
-    
-    import pdb
-    pdb.set_trace()
+        
     average_time_to_resolution = total_time_diff/incident_count
     print(f"average time to resolution 30 days: {average_time_to_resolution}")
     return average_time_to_resolution
