@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    message: "prometheus exporter of health metrics"
+  labels:
+    app: consoledot-health-metrics
+  name: health-metrics-exporter
+spec:
+  host: health-metrics-exporter-ephemeral-9e4z2j.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: consoledot-health-metrics
+    weight: 100
+  port:
+    targetPort: 8000-tcp
+  wildcardPolicy: None

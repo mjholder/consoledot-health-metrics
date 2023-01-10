@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    message: "Grafana instance"
+  labels:
+    app: consoledot-health-metrics
+  name: health-metrics-grafana
+spec:
+  host: health-metrics-grafana-ephemeral-9e4z2j.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: grafana
+    weight: 100
+  port:
+    targetPort: 3000-tcp

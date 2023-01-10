@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    message: "prometheus server"
+  labels:
+    app: prometheus
+  name: health-metrics-prometheus
+spec:
+  host: health-metrics-prometheus-ephemeral-9e4z2j.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: prometheus
+    weight: 100
+  port:
+    targetPort: 9090-tcp
+  wildcardPolicy: None
